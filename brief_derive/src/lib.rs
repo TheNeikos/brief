@@ -2,7 +2,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream as TStream;
 use proc_macro2::TokenStream;
 
-use quote::{quote, quote_spanned, format_ident};
+use quote::{format_ident, quote, quote_spanned};
 use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
 #[proc_macro_attribute]
@@ -98,7 +98,7 @@ fn bot_impl(input: syn::DeriveInput) -> Result<TokenStream, TokenStream> {
         let ty = &f.ty;
         let to_check = match t[0] {
             BriefType::Command(_) => quote!(#ty: ::brief::BotCommand),
-            BriefType::Callback(_) =>  quote!(#ty: ::brief::BotAction),
+            BriefType::Callback(_) => quote!(#ty: ::brief::BotAction),
         };
         quote_spanned!(f.ty.span()=> #[allow(non_camel_case_types)] struct #ident where #to_check;)
     });
@@ -109,7 +109,10 @@ fn bot_impl(input: syn::DeriveInput) -> Result<TokenStream, TokenStream> {
     let struct_fields = fields.iter().map(|(f, _)| f.ident.as_ref().unwrap());
     let tys = fields.iter().map(|(f, _)| &f.ty);
 
-    let cmds = fields.iter().filter(|(_, t)| match t[0] { BriefType::Command(_) => true, _ => false });
+    let cmds = fields.iter().filter(|(_, t)| match t[0] {
+        BriefType::Command(_) => true,
+        _ => false,
+    });
 
     let cmd_names = cmds.clone().map(|(f, t)| match &t[0] {
         BriefType::Command(Some(name)) => format!("/{}", name.0),
@@ -123,15 +126,21 @@ fn bot_impl(input: syn::DeriveInput) -> Result<TokenStream, TokenStream> {
 
     // Callbacks
 
-    let callbacks = fields.iter().filter(|(_, t)| match t[0] { BriefType::Callback(_) => true, _ => false });
+    let callbacks = fields.iter().filter(|(_, t)| match t[0] {
+        BriefType::Callback(_) => true,
+        _ => false,
+    });
 
     let callback_structs = callbacks.clone().map(|(f, _)| &f.ty);
 
-    let callback_names = callbacks.clone().map(|(f, t)| match &t[0] {
-        BriefType::Callback(Some(name)) => name.0.to_string(),
-        BriefType::Callback(None) => f.ident.as_ref().unwrap().to_string(),
-        _ => unreachable!(),
-    }).collect::<Vec<_>>();
+    let callback_names = callbacks
+        .clone()
+        .map(|(f, t)| match &t[0] {
+            BriefType::Callback(Some(name)) => name.0.to_string(),
+            BriefType::Callback(None) => f.ident.as_ref().unwrap().to_string(),
+            _ => unreachable!(),
+        })
+        .collect::<Vec<_>>();
 
     let callback_types = callbacks.clone().map(|(f, _)| &f.ty);
 
@@ -173,11 +182,11 @@ fn bot_impl(input: syn::DeriveInput) -> Result<TokenStream, TokenStream> {
 
                 if data_args.len() < 1 {
                     return Ok(());
-                } 
+                }
 
                 let name = data_args.remove(0);
 
-                let arg = if !data_args.is_empty() { 
+                let arg = if !data_args.is_empty() {
                     Some(String::from(data_args.remove(0)))
                 } else {
                     None

@@ -1,5 +1,5 @@
 extern crate brief;
-use brief::tg::{CanReplySendMessage, CanSendMessage, CanAnswerCallbackQuery};
+use brief::tg::{CanAnswerCallbackQuery, CanReplySendMessage, CanSendMessage};
 
 /// This is Hello World bot. All it does is tell you Hello World
 /// and gives you a keyboard to use and write Hello World yourself.
@@ -24,8 +24,7 @@ impl brief::BotCommand for HelloWorldCommand {
         args: Option<&str>,
         text: &str,
     ) -> Result<(), brief::BriefError> {
-        let keyboard: brief::tg::InlineKeyboardMarkup =
-            vec![vec![
+        let keyboard: brief::tg::InlineKeyboardMarkup = vec![vec![
             brief::tg::InlineKeyboardButton::callback(
                 "Cats",
                 SayHelloWorldAction::callback_data("Cats"),
@@ -34,8 +33,8 @@ impl brief::BotCommand for HelloWorldCommand {
                 "Rabbits",
                 SayHelloWorldAction::callback_data("Rabbits"),
             ),
-            ]]
-            .into();
+        ]]
+        .into();
         let reply = msg
             .text_reply(
                 "Hello there!\n\n\
@@ -59,7 +58,12 @@ impl brief::BotAction for SayHelloWorldAction {
         callback: &brief::tg::CallbackQuery,
         args: Option<String>,
     ) -> Result<(), brief::BriefError> {
-        ctx.send_request(callback.answer(format!("{} are the best!", args.unwrap())).show_alert()).await?;
+        ctx.send_request(
+            callback
+                .answer(format!("{} are the best!", args.unwrap()))
+                .show_alert(),
+        )
+        .await?;
         Ok(())
     }
 }
